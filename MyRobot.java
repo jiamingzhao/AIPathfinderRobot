@@ -20,10 +20,9 @@ public class MyRobot extends Robot {
         // use super.pingMap(new Point(x, y)) to see a part of the map
         // use super.move(new Point(x, y)) to move to a part of the map
         if (isUncertain) {
-			// call function to deal with uncertainty
-        }
-        else {
-			// call function to deal with certainty
+            // call function to deal with uncertainty
+        } else {
+            // call function to deal with certainty
         }
     }
 
@@ -35,17 +34,15 @@ public class MyRobot extends Robot {
 
     public static void main(String[] args) {
         try {
-			World myWorld = new World("TestCases/myInputFile1.txt", true);
-			
+            World myWorld = new World("TestCases/myInputFile1.txt", true);
+
             MyRobot robot = new MyRobot();
             robot.addToWorld(myWorld);
-			//myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the last parameter is delay in msecs
-			
+            //myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the last parameter is delay in msecs
 
-			robot.travelToDestination();
-        }
 
-        catch (Exception e) {
+            robot.travelToDestination();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
