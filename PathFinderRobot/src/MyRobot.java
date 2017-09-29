@@ -7,14 +7,15 @@ import world.Robot;
 import world.World;
 
 import java.awt.*;
+import java.util.PriorityQueue;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
-import static java.lang.StrictMath.sqrt;
 
 public class MyRobot extends Robot {
     private final static double SQRT_2 = Math.sqrt(2);
+    private static Point worldEndPosition;
     boolean isUncertain;
 
     /**
@@ -65,7 +66,7 @@ public class MyRobot extends Robot {
             while worst rank in open nodes is not goal
                 current node = remove lowest rank from open nodes
                 closed nodes += current node
-                for the 8 neighbors availablle,
+                for the 8 neighbors available,
                 cost = g(current) + cost(current, neighbor)
                 if neighbor in open nodes and cost less than g(neighbor)
                     remove neighbor from open nodes (new path better)
@@ -73,10 +74,11 @@ public class MyRobot extends Robot {
                     set g(neighbor) to cost
                     add neighbor to open
                     set priority queue rank to g(neighbor) + h(neighbor)
-                    set nieghbor's parent to current
-
+                    set neighbor's parent to current
          */
 
+        PriorityQueue<ElementPriority> openNodes = new PriorityQueue<ElementPriority>();
+        openNodes.add(new ElementPriority(super.getPosition(), 0));
     }
 
     private void travelWithUncertaintyToDestination() {
@@ -97,10 +99,25 @@ public class MyRobot extends Robot {
             robot.addToWorld(myWorld);
             myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the last parameter is delay in msecs
 
-
+            worldEndPosition = myWorld.getEndPos();
             robot.travelToDestination();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    class ElementPriority implements Comparable<ElementPriority> {
+        Point point;
+        int priority;
+
+        public ElementPriority(Point point, int priority) {
+            this.point = point;
+            this.priority = priority;
+        }
+
+        @Override
+        public int compareTo(ElementPriority otherElement) {
+            return Integer.compare(this.priority, otherElement.priority);
         }
     }
 }
