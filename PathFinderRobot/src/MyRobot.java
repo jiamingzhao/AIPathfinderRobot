@@ -99,7 +99,7 @@ public class MyRobot extends Robot {
 
             // base case: reached end destination - stop traversing
             if (currentPoint.equals(worldEndPosition)) {
-                System.out.println("DONE");
+                System.out.println("Found world end destination with certainty! Reversing path and starting engines!");
                 break;
             }
             ArrayList<Point> neighbors = getNeighbors(currentPoint);
