@@ -9,6 +9,7 @@ import world.World;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 import static java.lang.Math.abs;
@@ -35,11 +36,11 @@ public class MyRobot extends Robot {
     }
 
     /**
-     * Get the heuristic distance cost based on diagonal steps needed to get
-     * from Point p1 to Point p2 and on directSteps (up down left right)
+     * Get the heuristic distance cost based on direct steps needed to get
+     * from Point p1 to Point p2
      * @param p1
      * @param p2
-     * @return the heuristic distance cost based on diagonal and direct steps
+     * @return the heuristic distance cost based on and direct steps
      */
     private double heuristicDistance(Point p1, Point p2) {
         double x1 = p1.getX(), x2 = p2.getX();
@@ -48,24 +49,29 @@ public class MyRobot extends Robot {
         double dx = abs(x2 - x1);
         double dy = abs(y2 - y1);
 
-        double diagStepsDistance = min(dx, dy) * SQRT_2;
-        double directStepsDistance = max(dx, dy) - min(dx, dy);
-
-        return diagStepsDistance + directStepsDistance;
+        // number of steps without diagonal minus the difference when making diagonal step
+        // (2 - SQRT_2) represents replacing 2 regular steps minus the distance of a diagonal step
+//        return (dx + dy) - (2 - SQRT_2) * min(dx, dy);
+        return dx + dy;
     }
 
+    /**
+     * Get the possible next nodes to explore
+     * @param myPosition current node's location
+     * @return next nodes to explore (only the nodes marked with "O")
+     */
     private ArrayList<Point> getNeighbors(Point myPosition) {
         int x = (int)(myPosition.getX()), y = (int)(myPosition.getY());
         ArrayList<Point> neighborsList = new ArrayList<Point>();
-        int [] pts = {  // all 8 points
-                x-1, y-1,
+        int [] pts = {  // 4 regular steps, 4 diagonal steps
+//                x-1, y-1,
                 x-1, y,
-                x-1, y+1,
+//                x-1, y+1,
                 x, y-1,
                 x, y+1,
-                x+1, y-1,
+//                x+1, y-1,
                 x+1, y,
-                x+1, y+1
+//                x+1, y+1
         };
 
         Point possiblePoint = new Point(0, 0);
@@ -73,6 +79,7 @@ public class MyRobot extends Robot {
         System.out.println("Next possible nodes: ");
         for (int i = 0; i < pts.length; i+=2) {
             possiblePoint.setLocation(pts[i], pts[i+1]);
+
             // only add nodes that are "O" that can be moved to
             String ping = super.pingMap(possiblePoint);
             if (ping != null && ping.equals("O")) {
@@ -91,48 +98,42 @@ public class MyRobot extends Robot {
      * f = g + h where h is heuristic function
      */
     private void travelWithCertaintyToDestination() {
-        /*
-            get current position, x, and y
-            priority queue with starting point for open nodes
-            set with nothing (yet) that is for closed nodes
-            while worst rank in open nodes is not goal
-                current node = remove lowest rank from open nodes
-                closed nodes += current node
-                for the 8 neighbors available,
-                cost = g(current) + cost(current, neighbor)
-                if neighbor in open nodes and cost less than g(neighbor)
-                    remove neighbor from open nodes (new path better)
-                if neighbor not in open nodes and not in closed
-                    set g(neighbor) to cost
-                    add neighbor to open
-                    set priority queue rank to g(neighbor) + h(neighbor)
-                    set neighbor's parent to current
-         */
-
-        Point currentPosition = super.getPosition();
+        Point startingPosition = super.getPosition();
 
         PriorityQueue<ElementPriority> goNodes = new PriorityQueue<ElementPriority>();
-        goNodes.add(new ElementPriority(currentPosition, 0));
+        goNodes.add(new ElementPriority(startingPosition, 0));
 
         HashMap<Point, Point> previousNodes = new HashMap<Point, Point>();
-        HashMap<Point, Double> cost = new HashMap<Point, Double>();
+        HashMap<Point, Double> previousCosts = new HashMap<Point, Double>();
 
-        previousNodes.put(currentPosition, currentPosition);
-        cost.put(currentPosition, 0.0);
+        previousNodes.put(startingPosition, startingPosition);
+        previousCosts.put(startingPosition, 0.0);
 
         while (!goNodes.isEmpty()) {
-            ElementPriority currentPoint = goNodes.poll();
+            ElementPriority currentElement = goNodes.poll();
+            Point currentPoint = currentElement.point;
 
             // base case: reached end destination - stop traversing
-            if (currentPoint.point.equals(worldEndPosition)) {
+            if (currentPoint.equals(worldEndPosition)) {
                 break;
             }
-            ArrayList<Point> neighbors = getNeighbors(currentPosition);
+            ArrayList<Point> neighbors = getNeighbors(currentPoint);
 
-            for (Point point: neighbors) {
+            for (Point neighborPoint: neighbors) {
+                double cost = previousCosts.get(currentPoint) +
+                        heuristicDistance(currentPoint, neighborPoint);
 
+                if (!previousCosts.containsKey(neighborPoint) ||
+                        cost < previousCosts.get(neighborPoint)) {
+                    previousCosts.put(neighborPoint, cost);
+                    double priority = cost + heuristicDistance(neighborPoint, worldEndPosition);
+
+                    // TODO see if this typecast affects accuracy of algorithm
+                    goNodes.add(new ElementPriority(neighborPoint, (int)(priority)));
+
+                    previousNodes.put(neighborPoint, currentPoint);
+                }
             }
-
         }
     }
 
@@ -148,7 +149,7 @@ public class MyRobot extends Robot {
 
     public static void main(String[] args) {
         try {
-            World myWorld = new World("TestCases/myInputFile1.txt", false);
+            World myWorld = new World("TestCases/myInputFile3.txt", false);
 
             MyRobot robot = new MyRobot();
             robot.addToWorld(myWorld);
