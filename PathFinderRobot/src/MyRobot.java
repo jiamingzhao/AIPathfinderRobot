@@ -108,8 +108,7 @@ public class MyRobot extends Robot {
                 double cost = previousCosts.get(currentPoint) +
                         heuristicDistance(currentPoint, neighborPoint);
 
-                if (!previousCosts.containsKey(neighborPoint) ||
-                        cost < previousCosts.get(neighborPoint)) {
+                if (!previousCosts.containsKey(neighborPoint) || cost < previousCosts.get(neighborPoint)) {
                     previousCosts.put(neighborPoint, cost);
                     double priority = cost + heuristicDistance(neighborPoint, worldEndPosition);
 
