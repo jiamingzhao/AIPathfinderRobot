@@ -22,6 +22,7 @@ public class MyRobot extends Robot {
 	private final static double SQRT_2 = Math.sqrt(2);
 	private static int numCols, numRows;
 	private static Point worldEndPosition;
+	HashSet<Point> closedNodes;
 	boolean isUncertain;
 	static String input;
 	static World myWorld;
@@ -136,11 +137,18 @@ public class MyRobot extends Robot {
 				continue;
 			possiblePoint.setLocation(pts[i], pts[i + 1]);
 
+			if (closedNodes.contains(possiblePoint))
+			    continue;
+
 			// only add Nodes that are "O" or "F" that can be moved to
 			String ping = super.pingMap(possiblePoint);
-			if (ping != null && (ping.equals("O") || ping.equals("F"))) {
-				neighborsList.add(possiblePoint.getLocation());
+			if (ping != null) {
+			    if (ping.equals("O") || ping.equals("F"))
+				    neighborsList.add(possiblePoint.getLocation());
+			    else if (ping.equals("X"))
+			        closedNodes.add(possiblePoint.getLocation());
 			}
+
 		}
 
 		return neighborsList;
@@ -152,7 +160,9 @@ public class MyRobot extends Robot {
 	 * Best + Dijkstra's = A* algo f = g + h where h is heuristic function
 	 */
 	private void travelWithCertaintyToDestination() {
-		Point startingPosition = super.getPosition();
+		closedNodes = new HashSet<>();
+
+	    Point startingPosition = super.getPosition();
 
 		PriorityQueue<ElementPriority> goNodes = new PriorityQueue<ElementPriority>();
 		goNodes.add(new ElementPriority(startingPosition, 0.0));
@@ -184,6 +194,7 @@ public class MyRobot extends Robot {
 					goNodes.add(new ElementPriority(neighborPoint, priority));
 
 					previousNodes.put(neighborPoint, currentPoint);
+					closedNodes.add(currentPoint);
 				}
 			}
 		}
@@ -199,7 +210,6 @@ public class MyRobot extends Robot {
 
 		// reverse the path from goal and proceed
 		for (int i = robotPath.size() - 1; i >= 0; i--) {
-			System.out.println(robotPath.get(i).toString());
 			super.move(robotPath.get(i));
 		}
 
@@ -389,7 +399,7 @@ public class MyRobot extends Robot {
 
 	public static void main(String[] args) {
 		try {
-			input = "TestCases/myInputFile4.txt";
+			input = "TestCases/myInputFile3.txt";
 			myWorld = new World(input, false);
 
 			MyRobot robot = new MyRobot();
