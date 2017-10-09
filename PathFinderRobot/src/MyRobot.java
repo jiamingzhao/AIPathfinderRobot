@@ -433,14 +433,14 @@ public class MyRobot extends Robot {
 	public static void main(String[] args) {
 		try {
 			// Remove PathFinderRobot/ if you can't find the file
-			input = "PathFinderRobot/TestCases/myInputFile4.txt";
+			input = "TestCases/myInputFile4.txt";
 			myWorld = new World(input, true);
 
 			MyRobot robot = new MyRobot();
 			robot.addToWorld(myWorld);
 			
 			
-//			myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the
+			myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the
 			// last parameter is delay in msecs
 
 			worldEndPosition = myWorld.getEndPos();
