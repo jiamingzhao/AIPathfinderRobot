@@ -202,7 +202,14 @@ public class MyRobot extends Robot {
 		// generate the path from previousNodes
 		ArrayList<Point> robotPath = new ArrayList<Point>();
 		robotPath.add(worldEndPosition);
+
 		Point point = previousNodes.get(worldEndPosition);
+
+		if (point == null) {
+		    System.out.println("Safe passage not found. Robot will now shut down.");
+		    return;
+        }
+
 		while (!point.equals(startingPosition)) {
 			robotPath.add(point);
 			point = previousNodes.get(point);
@@ -399,7 +406,7 @@ public class MyRobot extends Robot {
 
 	public static void main(String[] args) {
 		try {
-			input = "TestCases/myInputFile3.txt";
+			input = "TestCases/myInputFile5.txt";
 			myWorld = new World(input, false);
 
 			MyRobot robot = new MyRobot();
