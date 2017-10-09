@@ -3,6 +3,9 @@
  * Apoorva Arunkumar aa3vs
  * Jiaming Zhao jz4bm
  * Pathfinder AI Work
+ * 
+ * THANKS FOR GRADING THIS
+ * 
  */
 
 import world.Robot;
@@ -58,6 +61,21 @@ public class MyRobot extends Robot {
 		// diagonal step
 		return (dx + dy) - (2 - SQRT_2) * min(dx, dy);
 	}
+	
+	private void setUpWalls() {
+		// TODO Auto-generated method stub
+		// Set neighbor nodes
+		for (int i = 0; i < Walls.size(); i++) {
+			for (int j = 0; j < Walls.size(); j++) {
+				// Iterate through and set neighbors of walls
+				if ((Math.abs(Walls.get(i).x - Walls.get(j).x) == 1 || Walls.get(i).x == Walls.get(j).x)
+						&& (Math.abs(Walls.get(i).y - Walls.get(j).y) == 1 || Walls.get(i).y == Walls.get(j).y)) {
+					Walls.get(i).neighbor.add(Walls.get(j));
+				}
+			}
+		}
+
+	}
 
 	// This is a method to basically check the certainty of a node.
 	public void pingMapWithCertainty(Node x) {
@@ -72,6 +90,7 @@ public class MyRobot extends Robot {
 			String a = this.pingMap(x);
 			String b = this.pingMap(x);
 			String c = this.pingMap(x);
+			//String d = this.pingMap(x);
 
 			// Check certainty
 			if (a.equals("X")) {
@@ -138,15 +157,15 @@ public class MyRobot extends Robot {
 			possiblePoint.setLocation(pts[i], pts[i + 1]);
 
 			if (closedNodes.contains(possiblePoint))
-			    continue;
+				continue;
 
 			// only add Nodes that are "O" or "F" that can be moved to
 			String ping = super.pingMap(possiblePoint);
 			if (ping != null) {
-			    if (ping.equals("O") || ping.equals("F"))
-				    neighborsList.add(possiblePoint.getLocation());
-			    else if (ping.equals("X"))
-			        closedNodes.add(possiblePoint.getLocation());
+				if (ping.equals("O") || ping.equals("F"))
+					neighborsList.add(possiblePoint.getLocation());
+				else if (ping.equals("X"))
+					closedNodes.add(possiblePoint.getLocation());
 			}
 
 		}
@@ -162,7 +181,7 @@ public class MyRobot extends Robot {
 	private void travelWithCertaintyToDestination() {
 		closedNodes = new HashSet<>();
 
-	    Point startingPosition = super.getPosition();
+		Point startingPosition = super.getPosition();
 
 		PriorityQueue<ElementPriority> goNodes = new PriorityQueue<ElementPriority>();
 		goNodes.add(new ElementPriority(startingPosition, 0.0));
@@ -206,9 +225,9 @@ public class MyRobot extends Robot {
 		Point point = previousNodes.get(worldEndPosition);
 
 		if (point == null) {
-		    System.out.println("Safe passage not found. Robot will now shut down.");
-		    return;
-        }
+			System.out.println("Safe passage not found. Robot will now shut down.");
+			return;
+		}
 
 		while (!point.equals(startingPosition)) {
 			robotPath.add(point);
@@ -276,15 +295,25 @@ public class MyRobot extends Robot {
 				}
 			}
 		}
+		
+		// Add our path to a list and traverse it
+		addNodesToList(current);
+	
+		// Move to the spot
+		for (int i = traversalList.size() - 1; i > -1; i--) {
+			this.move(traversalList.get(i));
+		}
+	}
+
+	private void addNodesToList(Node current) {
+		// TODO Auto-generated method stub
 		end.parent = current;
 		Node pathNode = end;
 		while (pathNode != start) {
 			traversalList.add(pathNode);
 			pathNode = pathNode.parent;
 		}
-		for (int i = traversalList.size() - 1; i > -1; i--) {
-			this.move(traversalList.get(i));
-		}
+		
 	}
 
 	// Ping neighbors and check for uncertainty
@@ -296,20 +325,30 @@ public class MyRobot extends Robot {
 			while (temp.value.equals("Not-yet-set") || temp.value.equals("Destroy")) {
 
 				// Try and ping the map right here
+				// Ping each spot 4 times and SEE WHAT HAPPENS YOLO
 				this.pingMapWithCertainty(temp);
 
 			}
-			if (temp.max_val > current.child + 1 + temp.nextChild && !unneededNodeList.contains(temp)
-					&& !temp.value.equals("unsure-x") && !temp.value.equals("X")) {
-				temp.child = current.child + 1;
-				temp.max_val = temp.child + temp.nextChild;
-				if (!seenList.contains(temp)) {
-					seenList.add(temp);
-				}
-				temp.parent = current;
-			}
+			
+			// Now that the node is not-yet-set or not unknown, we can set the child and parent up.
+			setUpChildAndParent(temp, current);
+
 		}
 
+	}
+
+	private void setUpChildAndParent(Node temp, Node current) {
+		// TODO Auto-generated method stub
+		if (temp.max_val > current.child + 1 + temp.nextChild && !unneededNodeList.contains(temp)
+				&& !temp.value.equals("unsure-x") && !temp.value.equals("X")) {
+			temp.child = current.child + 1;
+			temp.max_val = temp.child + temp.nextChild;
+			if (!seenList.contains(temp)) {
+				seenList.add(temp);
+			}
+			temp.parent = current;
+		}
+		
 	}
 
 	// Stores all map information in Nodes -- maybe unnecessary
@@ -363,25 +402,12 @@ public class MyRobot extends Robot {
 			Walls.get(i).nextChild = node;
 		}
 
-		// Figure out where wall neigihbors are
+		// Figure out where wall neighbors are
 		setUpWalls();
 
 	}
 
-	private void setUpWalls() {
-		// TODO Auto-generated method stub
-		// Set neighbor nodes
-		for (int i = 0; i < Walls.size(); i++) {
-			for (int j = 0; j < Walls.size(); j++) {
-				// Iterate through and set neighbors of walls
-				if ((Math.abs(Walls.get(i).x - Walls.get(j).x) == 1 || Walls.get(i).x == Walls.get(j).x)
-						&& (Math.abs(Walls.get(i).y - Walls.get(j).y) == 1 || Walls.get(i).y == Walls.get(j).y)) {
-					Walls.get(i).neighbor.add(Walls.get(j));
-				}
-			}
-		}
-
-	}
+	
 
 	/**
 	 * This method is for pathfinding
@@ -406,12 +432,15 @@ public class MyRobot extends Robot {
 
 	public static void main(String[] args) {
 		try {
-			input = "TestCases/myInputFile5.txt";
-			myWorld = new World(input, false);
+			// Remove PathFinderRobot/ if you can't find the file
+			input = "PathFinderRobot/TestCases/myInputFile4.txt";
+			myWorld = new World(input, true);
 
 			MyRobot robot = new MyRobot();
 			robot.addToWorld(myWorld);
-			 myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the
+			
+			
+//			myWorld.createGUI(400, 400, 200); // uncomment this and create a GUI; the
 			// last parameter is delay in msecs
 
 			worldEndPosition = myWorld.getEndPos();
